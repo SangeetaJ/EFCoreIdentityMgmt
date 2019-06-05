@@ -21,7 +21,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace EFCore.Entities
 {
     [Table("IDN_TRN_ROLEDETAILS")]
-    public class RoleDetails : IAuditable
+    public class RoleDetail : IAuditable
     {
         [Column("ROLE_CODE")]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]

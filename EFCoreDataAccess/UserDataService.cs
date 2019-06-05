@@ -1,19 +1,4 @@
-﻿/*****************************************************************************************************************************  
-**� 2019 Datamatics Robotics Software Limited, Inc, All Rights Reserved 
-* Datamatics Robotics Software Limited Group, Inc. (Encounter Data Manager) Proprietary Product Software *
-* Not to be modified by customer *  
-* Not Customer maintainable *
-** AUTHOR:			Datamatics Robotics Software Limited.   
-** CREATED ON:		1/22/2019
-** CREATED BY:		TruBot
-** Description:   
-** 
-** Revision History:
-**
-** Date     Author      Description   
-*******************************************************************************************************************************/
-
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -41,12 +26,20 @@ namespace EFCore.DataAccess
             userManager = _userManager;
         }
 
-
-        public async Task<IdentityResult> AddUser(User model)
+        public async Task<IdentityResult> AddUser(User model, List<string> roleNames)
         {
             try
             {
                 var result = await userManager.CreateAsync(model).ConfigureAwait(false);
+                if (result.Succeeded)
+                {
+                    var roles = roleManager.Roles.Where(x => roleNames.Contains(x.Id)).ToList();
+
+                    foreach (var role in roles)
+                    {
+                        await userManager.AddToRoleAsync(model, role.NormalizedName).ConfigureAwait(false);
+                    }
+                }
                 idbContext.SaveChanges();
                 return result;
             }
@@ -99,11 +92,76 @@ namespace EFCore.DataAccess
             }
         }
 
-        public async Task<IdentityUser> FindUserByEmail(User model)
+        public List<User> FindAllUser()
         {
             try
             {
-                var result = await userManager.FindByEmailAsync(model.Email).ConfigureAwait(false);
+                var usersWithRoles = (from user in idbContext.Users
+                                          // where user.Email.Equals(model.Email)
+                                      select new User
+                                      {
+                                          Id = user.Id,
+                                          FirstName = user.FirstName,
+                                          MiddleName = user.MiddleName,
+                                          LastName = user.LastName,
+                                          NormalizedEmail = user.NormalizedEmail,
+                                          CreatedBy = user.CreatedBy,
+                                          UpdatedBy = user.UpdatedBy,
+                                          Email = user.Email,
+                                          Roles = (from userRole in idbContext.UserRoles
+                                                   //join u in user on userRole.UserId equals u.Id
+                                                   join role in roleManager.Roles on userRole.RoleId
+                                                   equals role.Id
+                                                   where userRole.UserId == user.Id
+                                                   select new Info
+                                                   {
+                                                       Id = role.Id,
+                                                       Name = role.Name
+                                                   }).ToList()
+                                      }).ToList();
+
+
+                return usersWithRoles;
+            }
+            catch (Exception ex)
+            {
+                //handle exception here
+                return null;
+            }
+        }
+
+        public async Task<IdentityUser> FindUserByUserName(string userName)
+        {
+            try
+            {
+                var result = await userManager.FindByNameAsync(userName).ConfigureAwait(false);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                //handle exception here
+                return null;
+            }
+        }
+        public List<User> GetAllUsersWithRole()
+        {
+            try
+            {
+                var result = idbContext.Users.ToList();
+                return result;
+            }
+            catch (Exception ex)
+            {
+                //handle exception here
+                return null;
+            }
+        }
+
+        public List<Role> GetAllRoles()
+        {
+            try
+            {
+                var result = idbContext.Roles.ToList();
                 return result;
             }
             catch (Exception ex)

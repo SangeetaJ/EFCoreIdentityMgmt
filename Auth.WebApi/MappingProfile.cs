@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using Auth.WebApi.DTOs;
-using static EFCore.Entities.IdnDBContext;
-
+using EFCore.Entities;
 
 namespace Auth.WebApi
 {
@@ -10,6 +9,10 @@ namespace Auth.WebApi
         public MappingProfile()
         {
             CreateMap<UserDTO, User>(MemberList.Source);
+            CreateMap<User, UserDTO>(MemberList.Source);
+
+            CreateMap<RoleDTO, Role>(MemberList.Source);
+            CreateMap<Role, RoleDTO>(MemberList.Source);
         }
     }
 }

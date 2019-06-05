@@ -22,7 +22,7 @@ using System.Text;
 namespace EFCore.Entities
 {
     [Table("IDN_MST_CLAIMS")]
-    public class Claims
+    public class Claim
     {
 
         [Key]

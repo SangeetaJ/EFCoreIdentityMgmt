@@ -20,6 +20,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EFCore.Entities
 {
+    [Table("IDN_MST_PRIVILEGE")]
     public class Privilege : IAuditable
     {
         [Key]

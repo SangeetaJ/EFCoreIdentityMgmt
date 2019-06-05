@@ -20,7 +20,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace EFCore.Entities
 {
     [Table("IDN_TRN_CLAIMS")]
-    public class Permissions
+    public class Permission
     {
 
         [Key]
@@ -38,7 +38,7 @@ namespace EFCore.Entities
         [Column("CLAIMS_ID")]
         [ForeignKey("FK_CLAIMS_ID")]
         public int ClaimsId { get; set; }
-        public virtual Claims Claims { get; set; }
+        public virtual Claim Claims { get; set; }
 
         [Column("CREATEDBY")]
         public string CreatedBy { get; set; }

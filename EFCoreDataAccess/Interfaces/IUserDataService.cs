@@ -18,12 +18,13 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
+using EFCore.Entities;
 
 namespace EFCore.DataAccess
 {
     public interface IUserDataService
     {
-        Task<IdentityResult> AddUser(User model);
+        Task<IdentityResult> AddUser(User model, List<string> roleNames);
 
         string GetUserRoleId(string userId);
         //Task<bool> UpdateUserSessionLog(DateTime logoutDate, string sessionId);
@@ -37,5 +38,9 @@ namespace EFCore.DataAccess
         Task<string[]> GetAuthorizedUserList(string UserCode);
         Task<string> GetLoggedinUserRoleType(string UserCode);
         Task<int> GetLoggedinUserRoleTypeId(string UserCode);
+        Task<IdentityUser> FindUserByUserName(string userName);
+        List<User> FindAllUser();
+        List<Role> GetAllRoles();
+       
     }
 }
