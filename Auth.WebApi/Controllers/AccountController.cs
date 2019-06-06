@@ -110,17 +110,27 @@ namespace Auth.WebApi.Controllers
         }
 
         // PUT: api/Account/5
-        [HttpPut("{id}")]
+        [HttpPut]
         [ApiAuthorize]
-        public void Put(int id, [FromBody] string value)
+        public IActionResult Put([FromBody] UserDTO user)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest();
+            }
+            var result = service.UpdateUser(mapper.Map<User>(user), user.UserRoles);
+
+            return Content(Newtonsoft.Json.JsonConvert.SerializeObject(result.Result));
         }
 
         // DELETE: api/ApiWithActions/5
-        [HttpDelete("{id}")]
+        [HttpDelete("{username}")]
         [ApiAuthorize]
-        public void Delete(int id)
+        public IActionResult Delete(string username)
         {
+            var result = service.DeleteUser(username);
+
+            return Content(Newtonsoft.Json.JsonConvert.SerializeObject(result.Result));
         }
     }
 }

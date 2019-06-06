@@ -31,7 +31,7 @@ namespace Auth.WebApi.Controllers
             this.service = service;
         }
 
-        [HttpGet("{username}", Name = "Gett")]
+        [HttpGet]
         [ApiAuthorize]
         public IActionResult Get()
         {

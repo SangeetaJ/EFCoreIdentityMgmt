@@ -12,16 +12,15 @@ using AutoMapper;
 namespace EFCore.DataAccess
 {
 
-    public class UserDataService : IUserDataService
+    public class UserDataService : DataService, IUserDataService
     {
-        private readonly IdnDBContext idbContext;
         private readonly RoleManager<IdentityRole> roleManager;
         private readonly UserManager<IdentityUser> userManager;
-        private readonly IMapper mapper;
+
 
         public UserDataService(IdnDBContext idbContext, RoleManager<IdentityRole> _roleManager, UserManager<IdentityUser> _userManager, IMapper _mapper)
+            : base(idbContext, _mapper)
         {
-            this.idbContext = idbContext;
             roleManager = _roleManager;
             userManager = _userManager;
         }
@@ -54,11 +53,22 @@ namespace EFCore.DataAccess
             }
         }
 
-        public async Task<IdentityResult> UpdateUser(User model)
+        public async Task<IdentityResult> UpdateUser(User model, List<string> roleNames)
         {
             try
             {
                 var result = await userManager.UpdateAsync(model).ConfigureAwait(false);
+                if (result.Succeeded)
+                {
+                    await userManager.RemoveFromRolesAsync(model, roleNames);
+
+                    var roles = roleManager.Roles.Where(x => roleNames.Contains(x.Id)).ToList();
+
+                    foreach (var role in roles)
+                    {
+                        await userManager.AddToRoleAsync(model, role.NormalizedName).ConfigureAwait(false);
+                    }
+                }
                 idbContext.SaveChanges();
                 return result;
             }
@@ -73,11 +83,12 @@ namespace EFCore.DataAccess
             }
         }
 
-        public async Task<IdentityResult> DeleteUser(User model)
+        public async Task<IdentityResult> DeleteUser(string username)
         {
             try
             {
-                var result = await userManager.DeleteAsync(model).ConfigureAwait(false);
+                User user = idbContext.Users.Where(x => x.UserName.Equals(username)).SingleOrDefault();
+                var result = await userManager.DeleteAsync(user).ConfigureAwait(false);
                 idbContext.SaveChanges();
                 return result;
             }
@@ -109,7 +120,7 @@ namespace EFCore.DataAccess
                                           UpdatedBy = user.UpdatedBy,
                                           Email = user.Email,
                                           Roles = (from userRole in idbContext.UserRoles
-                                                   //join u in user on userRole.UserId equals u.Id
+                                                       //join u in user on userRole.UserId equals u.Id
                                                    join role in roleManager.Roles on userRole.RoleId
                                                    equals role.Id
                                                    where userRole.UserId == user.Id
@@ -143,25 +154,18 @@ namespace EFCore.DataAccess
                 return null;
             }
         }
-        public List<User> GetAllUsersWithRole()
-        {
-            try
-            {
-                var result = idbContext.Users.ToList();
-                return result;
-            }
-            catch (Exception ex)
-            {
-                //handle exception here
-                return null;
-            }
-        }
+
 
         public List<Role> GetAllRoles()
         {
             try
             {
-                var result = idbContext.Roles.ToList();
+                var result = roleManager.Roles.Select(x => new Role
+                {
+                    Id = x.Id,
+                    Name = x.Name,
+                    NormalizedName = x.NormalizedName
+                }).ToList();
                 return result;
             }
             catch (Exception ex)

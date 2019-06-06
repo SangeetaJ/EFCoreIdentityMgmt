@@ -25,6 +25,8 @@ namespace EFCore.DataAccess
     public interface IUserDataService
     {
         Task<IdentityResult> AddUser(User model, List<string> roleNames);
+        Task<IdentityResult> UpdateUser(User model, List<string> roleNames);
+        Task<IdentityResult> DeleteUser(string username);
 
         string GetUserRoleId(string userId);
         //Task<bool> UpdateUserSessionLog(DateTime logoutDate, string sessionId);
